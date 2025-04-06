@@ -19,25 +19,29 @@ try:
     page_source = driver.page_source  
     soup = BeautifulSoup(page_source, 'html.parser')  
 
-    menus = soup.find_all('h3')  # Menü címek  
-    for menu in menus:  
-        menu_title = menu.text.strip()  
-        price = menu.find_next('span').text.strip() if menu.find_next('span') else 'N/A'  # Az ár kiolvasása  
-        menu_items = menu.find_next('ul').find_all('li') if menu.find_next('ul') else []  
-
-        if menu_items:  
-            print(f"{menu_title} - {price}")  
-            for item in menu_items:  
-                item_name = item.text.strip()  
-                print(f" {item_name}")  
-            print()  # Üres sort hozzáad  
-
-    additional_sections = soup.find_all('div', class_='additional-section-class')  # Ellenőrizd a megfelelő osztálynevet  
-    if additional_sections:  
-        for section in additional_sections:  
-            print(section.text.strip())  
+    no_menu_message = soup.find(text="Erre a hétre még nincs étlap feltöltve")  
+    if no_menu_message:  
+        print("Erre a hétre még nincs étlap feltöltve.")  
     else:  
-        print("Nincsenek további információk.")  
+        menus = soup.find_all('div', class_='menu-section-class') 
+        for menu in menus:  
+            menu_title = menu.find('h3').text.strip()  
+            price = menu.find('span', class_='price-class').text.strip() if menu.find('span', class_='price-class') else 'N/A'  
+            
+            menu_items = menu.find_all('li')  
+            if menu_items:  
+                print(f"{menu_title} - {price}")  
+                for item in menu_items:  
+                    print(f" {item.text.strip()}")  
+                print()
+            else:  
+                print(f"{menu_title} - {price} (Nincs étel a menüben)")  
+
+        additional_items = soup.find_all('div', class_='special-item-class')
+        for item in additional_items:  
+            item_name = item.text.strip()  
+            price = item.find('span', class_='price-class').text.strip() if item.find('span', class_='price-class') else 'N/A'  
+            print(f"{item_name} - {price}")  
 
 finally:  
     driver.quit()  
